@@ -105,8 +105,7 @@
 
 - name: Auditd rules reload
   ansible.builtin.shell: augenrules --load
-  when:
-      - '"No change" not in ubtu22cis_rule_4_1_3_21_augen_check.stdout'
+  when: '"No change" not in ubtu22cis_rule_4_1_3_21_augen_check.stdout'
 
 - name: Auditd_immutable_check
   ansible.builtin.shell: grep -c "^-e 2" /etc/audit/rules.d/99_auditd.rules
