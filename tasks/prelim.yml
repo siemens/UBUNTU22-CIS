@@ -85,6 +85,25 @@
   tags:
       - always
 
+- name: "PRELIM | 3.4.1.1 | Ensure ufw is installed | Check if UFW is installed"
+  command: dpkg-query -s ufw
+  register: package_check
+  ignore_errors: yes
+  when: ubtu22cis_firewall_package == "ufw"
+  tags:
+      - always
+      - ufw
+
+- name: "PRELIM | 3.4.1.1 | Ensure ufw is installed | Install UFW if it is not already installed"
+  command: apt install ufw -y
+  when:
+      - '"is not installed" in package_check.stderr'
+      - ubtu22cis_firewall_package == "ufw"
+  tags:
+      - always
+      - ufw
+
+
 - name: "PRELIM | PATCH | Ensure auditd is installed"
   block:
       - name: "PRELIM | PATCH | Ensure auditd is installed"
