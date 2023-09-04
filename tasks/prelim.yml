@@ -85,6 +85,25 @@
   tags:
       - always
 
+- name: "PRELIM | 3.4.1.1 | Ensure ufw is installed | Check if UFW is installed"
+  command: dpkg-query -s ufw
+  register: package_check
+  ignore_errors: yes
+  when: ubtu22cis_firewall_package == "ufw"
+  tags:
+      - always
+      - ufw
+
+- name: "PRELIM | 3.4.1.1 | Ensure ufw is installed | Install UFW if it is not already installed"
+  command: apt install ufw -y
+  when:
+      - '"is not installed" in package_check.stderr'
+      - ubtu22cis_firewall_package == "ufw"
+  tags:
+      - always
+      - ufw
+
+
 - name: "PRELIM | PATCH | Ensure auditd is installed"
   block:
       - name: "PRELIM | PATCH | Ensure auditd is installed"
@@ -153,7 +172,8 @@
       - always
 
 - name: "PRELIM | Interactive User accounts"
-  ansible.builtin.shell: 'cat /etc/passwd | grep -Ev "nologin|/sbin|/bin" | cut -d: -f6'
+  ansible.builtin.shell: >
+        grep -E -v '^(root|halt|sync|shutdown)' /etc/passwd | awk -F: '($7 != "'"$(which nologin)"'" && $7 != "/bin/false") { print $6 }'
   changed_when: false
   register: interactive_users_home
   tags:

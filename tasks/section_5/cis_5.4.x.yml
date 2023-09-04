@@ -113,19 +113,18 @@
       - name: "5.4.3 | PATCH | Ensure password reuse is limited | Set remember value if pam_unix does exist"
         ansible.builtin.lineinfile:
             path: /etc/pam.d/common-password
-            regexp: '^(password\s*\[success=1 default=ignore\] pam_unix.*)(remember=([0-9]{1,})|)(.*$)'
-            line: '\g<1>\g<2> remember={{ ubtu22cis_pamd_pwhistory_remember }}'
-            backrefs: true
+            insertbefore: '^password [success=1 default=ignore] pam_unix.so obscure yescrypt :'
+            line: 'password required pam_pwhistory.so use_authtok remember={{ ubtu22cis_pamd_pwhistory_remember }}' 
         when:
             - ubtu22cis_5_4_3_pam_unix_state.stdout | length > 0
             - "'remember' not in ubtu22cis_5_4_3_pam_unix_state.stdout"
 
       - name: "5.4.3 | PATCH | Ensure password reuse is limited | Set remember value if pam_unix does not exist"
-        ansible.builtin.lineinfile:
+        ansible.builtin.blockinfile:
             path: /etc/pam.d/common-password
-            regexp: '^password\s*\[success=1 default=ignore\] pam_unix.*'
-            line: 'password [success=1 default=ignore] pam_unix.so obscure use_authtok try_first_pass yescrypt remember={{ ubtu22cis_pamd_pwhistory_remember }}'
-            insertafter: '^# end of pam-auth-update config'
+            block: |
+              password required pam_pwhistory.so use_authtok remember={{ ubtu22cis_pamd_pwhistory_remember }}
+              password [success=1 default=ignore] pam_unix.so obscure yescrypt :
         when: ubtu22cis_5_4_3_pam_unix_state.stdout | length == 0
   when:
       - ubtu22cis_rule_5_4_3
